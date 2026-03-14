@@ -47,19 +47,8 @@ The project uses **Weights & Biases (W&B)** to maintain a rigorous audit trail o
 
 ## 📐 System Architecture
 
-![System Architecture](docs/architecture_v2.png)
+![System Architecture](docs/architecture_v3.png)
 
-The following diagram illustrates the automated data flow from ingestion to inference:
-```mermaid
-graph TD
-    A[Kaggle Dataset] -->|Download| B[Data Ingestion Stage]
-    B -->|Verified CSV| C[Preprocessing Stage]
-    C -->|Scaled Features| D[Stacking Training]
-    D -->|OOF Predictions| E[W&B Registry]
-    E -->|Production Tag| F[FastAPI Web Server]
-    G[Web User] -->|Inference Req| F
-    F -->|Salary Estimate| G
-```
 
 ---
 
