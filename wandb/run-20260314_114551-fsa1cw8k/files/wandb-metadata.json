@@ -1,0 +1,34 @@
+{
+  "os": "Windows-11-10.0.26200-SP0",
+  "python": "CPython 3.13.5",
+  "startedAt": "2026-03-14T06:15:51.533215Z",
+  "args": [
+    "--stage",
+    "model_training",
+    "--config",
+    "config/config.yaml"
+  ],
+  "program": "D:\\mlops\\salary prediction\\main.py",
+  "codePath": "main.py",
+  "codePathLocal": "main.py",
+  "git": {
+    "remote": "https://github.com/Jitu9427/salary-prediction.git",
+    "commit": "c67b51f4eeb030c74493c3b290c0dad64c841927"
+  },
+  "email": "errorprajapati@gmail.com",
+  "root": "D:\\mlops\\salary prediction",
+  "host": "INBOOK_Y2_PLUS",
+  "executable": "C:\\Users\\Aryan\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
+  "cpu_count": 4,
+  "cpu_count_logical": 8,
+  "disk": {
+    "/": {
+      "total": "214747312128",
+      "used": "20043730944"
+    }
+  },
+  "memory": {
+    "total": "16909541376"
+  },
+  "writerId": "auii7bqt81zuo36p28ty5n1fj1imdcpi"
+}

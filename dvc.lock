@@ -1,0 +1,217 @@
+schema: '2.0'
+stages:
+  data_ingestion:
+    cmd: python main.py --stage data_ingestion --config config/config.yaml
+    deps:
+    - path: config/config.yaml
+      hash: md5
+      md5: 0f10ea7ec6bacad4d03a5fc0935645bf
+      size: 2160
+    - path: src/data_ingestion.py
+      hash: md5
+      md5: e84a802d3c8a8784c17339db5a91dc18
+      size: 18936
+    - path: utils/logger.py
+      hash: md5
+      md5: 939207da5d148c63b9696bbbc3b78dca
+      size: 3976
+    params:
+      config/config.yaml:
+        data_ingestion:
+          test_size: 0.2
+          random_state: 42
+          stratify_col: experience_level
+          train_filename: train.csv
+          test_filename: test.csv
+        directories:
+          raw_data: data/raw
+          processed_data: data/processed
+          logs: logs
+        kaggle:
+          dataset: ruchi798/data-science-job-salaries
+          filename: ds_salaries.csv
+    outs:
+    - path: data/processed/test.csv
+      hash: md5
+      md5: a777e19b55bf3d54b130beafaab69663
+      size: 7624
+    - path: data/processed/train.csv
+      hash: md5
+      md5: a7a39f4cf1632968dfda498031bf2a27
+      size: 30118
+    - path: data/raw/ds_salaries.csv
+      hash: md5
+      md5: 9f19d93429472b05747c66d7ae51754d
+      size: 36960
+    - path: reports/data_ingestion_report.json
+      hash: md5
+      md5: 15fa6039c80875e390c844cf907e288d
+      size: 811
+  data_preprocessing:
+    cmd: python main.py --stage data_preprocessing --config config/config.yaml
+    deps:
+    - path: config/config.yaml
+      hash: md5
+      md5: 0f10ea7ec6bacad4d03a5fc0935645bf
+      size: 2160
+    - path: config/params.yaml
+      hash: md5
+      md5: 570174deea3bcd98fe5517dade524558
+      size: 2094
+    - path: data/processed/test.csv
+      hash: md5
+      md5: a777e19b55bf3d54b130beafaab69663
+      size: 7624
+    - path: data/processed/train.csv
+      hash: md5
+      md5: a7a39f4cf1632968dfda498031bf2a27
+      size: 30118
+    - path: src/data_preprocessing.py
+      hash: md5
+      md5: 834415fc843a0e458f94f700b49d783d
+      size: 2942
+    params:
+      config/params.yaml:
+        preprocessing:
+          outlier_method: iqr
+          outlier_threshold: 1.5
+          target_col: salary_in_usd
+    outs:
+    - path: data/processed/test_processed.csv
+      hash: md5
+      md5: fefd78eea7cc2281e955c37da4ff1f8a
+      size: 6300
+    - path: data/processed/train_processed.csv
+      hash: md5
+      md5: 0b41b8b4c572e857d0d940066c40e576
+      size: 24485
+  data_validation:
+    cmd: python main.py --stage data_validation --config config/config.yaml
+    deps:
+    - path: config/config.yaml
+      hash: md5
+      md5: 0f10ea7ec6bacad4d03a5fc0935645bf
+      size: 2160
+    - path: data/processed/test_processed.csv
+      hash: md5
+      md5: fefd78eea7cc2281e955c37da4ff1f8a
+      size: 6300
+    - path: data/processed/train_processed.csv
+      hash: md5
+      md5: 0b41b8b4c572e857d0d940066c40e576
+      size: 24485
+    - path: src/data_validation.py
+      hash: md5
+      md5: 31ce76f934e888b0ced632115a6bed6e
+      size: 2424
+    outs:
+    - path: reports/validation_report.json
+      hash: md5
+      md5: 9dd9d180da36ebe3467e59ec38827f2d
+      size: 93
+  model_training:
+    cmd: python main.py --stage model_training --config config/config.yaml
+    deps:
+    - path: config/config.yaml
+      hash: md5
+      md5: 0f10ea7ec6bacad4d03a5fc0935645bf
+      size: 2160
+    - path: config/params.yaml
+      hash: md5
+      md5: 570174deea3bcd98fe5517dade524558
+      size: 2094
+    - path: data/processed/train_processed.csv
+      hash: md5
+      md5: 0b41b8b4c572e857d0d940066c40e576
+      size: 24485
+    - path: src/model_training.py
+      hash: md5
+      md5: d7d90a6b281742a1dd339e13e76e8fbd
+      size: 4692
+    params:
+      config/params.yaml:
+        base_models:
+          random_forest:
+            n_estimators: 300
+            max_depth: 15
+            min_samples_split: 5
+            min_samples_leaf: 2
+            n_jobs: -1
+            random_state: 42
+          gradient_boosting:
+            n_estimators: 300
+            learning_rate: 0.05
+            max_depth: 6
+            subsample: 0.8
+            random_state: 42
+          ridge:
+            alpha: 10.0
+        meta_learner:
+          model: ridge
+          alpha: 1.0
+          cv_folds: 5
+    outs:
+    - path: models/preprocessor.pkl
+      hash: md5
+      md5: 14d8aa5303d61bd286b9d4ea99c322f1
+      size: 5466
+    - path: models/stacking_model.pkl
+      hash: md5
+      md5: 22236c8f774cf111f4f19b9e90691a00
+      size: 5790954
+  model_evaluation:
+    cmd: python main.py --stage model_evaluation --config config/config.yaml
+    deps:
+    - path: config/config.yaml
+      hash: md5
+      md5: 0f10ea7ec6bacad4d03a5fc0935645bf
+      size: 2160
+    - path: config/params.yaml
+      hash: md5
+      md5: 570174deea3bcd98fe5517dade524558
+      size: 2094
+    - path: data/processed/test_processed.csv
+      hash: md5
+      md5: fefd78eea7cc2281e955c37da4ff1f8a
+      size: 6300
+    - path: models/preprocessor.pkl
+      hash: md5
+      md5: 14d8aa5303d61bd286b9d4ea99c322f1
+      size: 5466
+    - path: models/stacking_model.pkl
+      hash: md5
+      md5: 22236c8f774cf111f4f19b9e90691a00
+      size: 5790954
+    - path: src/model_evaluation.py
+      hash: md5
+      md5: 559c159d4a117cf3c9403fe2839c2834
+      size: 2265
+    params:
+      config/params.yaml:
+        evaluation:
+          min_r2: 0.75
+          max_rmse: 30000
+    outs:
+    - path: reports/evaluation_metrics.json
+      hash: md5
+      md5: cde47a38dac530da9bb596b030fee51c
+      size: 98
+  model_registration:
+    cmd: python main.py --stage model_registration --config config/config.yaml
+    deps:
+    - path: config/config.yaml
+      hash: md5
+      md5: 0f10ea7ec6bacad4d03a5fc0935645bf
+      size: 2160
+    - path: models/stacking_model.pkl
+      hash: md5
+      md5: 22236c8f774cf111f4f19b9e90691a00
+      size: 5790954
+    - path: reports/evaluation_metrics.json
+      hash: md5
+      md5: cde47a38dac530da9bb596b030fee51c
+      size: 98
+    - path: src/model_registration.py
+      hash: md5
+      md5: 34a8e30e37c3e36f5865d8b81e5e5bde
+      size: 2855

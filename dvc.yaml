@@ -1,0 +1,118 @@
+stages:
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # Stage 1 – Data Ingestion
+  # Downloads from Kaggle, validates, and splits into train/test CSVs.
+  # ────────────────────────────────────────────────────────────────────────────
+  data_ingestion:
+    cmd: python main.py --stage data_ingestion --config config/config.yaml
+    deps:
+      - src/data_ingestion.py
+      - config/config.yaml
+      - utils/logger.py
+    params:
+      - config/config.yaml:
+          - kaggle
+          - directories
+          - data_ingestion
+    outs:
+      - data/raw/ds_salaries.csv:
+          cache: true
+          persist: false
+      - data/processed/train.csv:
+          cache: true
+      - data/processed/test.csv:
+          cache: true
+    metrics:
+      - reports/data_ingestion_report.json:
+          cache: false
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # Stage 2 – Data Preprocessing
+  # Feature engineering, encoding, outlier removal.
+  # ────────────────────────────────────────────────────────────────────────────
+  data_preprocessing:
+    cmd: python main.py --stage data_preprocessing --config config/config.yaml
+    deps:
+      - src/data_preprocessing.py
+      - data/processed/train.csv
+      - data/processed/test.csv
+      - config/config.yaml
+      - config/params.yaml
+    params:
+      - config/params.yaml:
+          - preprocessing
+    outs:
+      - data/processed/train_processed.csv:
+          cache: true
+      - data/processed/test_processed.csv:
+          cache: true
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # Stage 3 – Data Validation
+  # Great Expectations / custom schema checks.
+  # ────────────────────────────────────────────────────────────────────────────
+  data_validation:
+    cmd: python main.py --stage data_validation --config config/config.yaml
+    deps:
+      - src/data_validation.py
+      - data/processed/train_processed.csv
+      - data/processed/test_processed.csv
+      - config/config.yaml
+    outs:
+      - reports/validation_report.json:
+          cache: false
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # Stage 4 – Model Training
+  # Stacking ensemble (RF + GBM + Ridge) with W&B experiment tracking.
+  # ────────────────────────────────────────────────────────────────────────────
+  model_training:
+    cmd: python main.py --stage model_training --config config/config.yaml
+    deps:
+      - src/model_training.py
+      - data/processed/train_processed.csv
+      - config/config.yaml
+      - config/params.yaml
+    params:
+      - config/params.yaml:
+          - base_models
+          - meta_learner
+    outs:
+      - models/stacking_model.pkl:
+          cache: true
+      - models/preprocessor.pkl:
+          cache: true
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # Stage 5 – Model Evaluation
+  # Computes RMSE, MAE, R² on the test split; logs metrics to W&B.
+  # ────────────────────────────────────────────────────────────────────────────
+  model_evaluation:
+    cmd: python main.py --stage model_evaluation --config config/config.yaml
+    deps:
+      - src/model_evaluation.py
+      - models/stacking_model.pkl
+      - models/preprocessor.pkl
+      - data/processed/test_processed.csv
+      - config/config.yaml
+      - config/params.yaml
+    params:
+      - config/params.yaml:
+          - evaluation
+    metrics:
+      - reports/evaluation_metrics.json:
+          cache: false
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # Stage 6 – Model Registration
+  # Registers model in W&B Model Registry if evaluation thresholds pass.
+  # ────────────────────────────────────────────────────────────────────────────
+  model_registration:
+    cmd: python main.py --stage model_registration --config config/config.yaml
+    deps:
+      - src/model_registration.py
+      - models/stacking_model.pkl
+      - reports/evaluation_metrics.json
+      - config/config.yaml
+    outs: []

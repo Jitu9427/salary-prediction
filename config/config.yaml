@@ -1,0 +1,28 @@
+# ══════════════════════════════════════════════════════════════════════════════
+# config/config.yaml
+# Project-level configuration for the Salary-Prediction MLOps pipeline.
+# All path values are RELATIVE to the project root unless noted.
+# ══════════════════════════════════════════════════════════════════════════════
+
+# ── Kaggle dataset ────────────────────────────────────────────────────────────
+kaggle:
+  dataset: "ruchi798/data-science-job-salaries"   # <username>/<dataset-slug> on Kaggle
+  filename: "ds_salaries.csv"              # file inside the downloaded zip
+
+# ── Directory layout ──────────────────────────────────────────────────────────
+directories:
+  raw_data:       "data/raw"           # untouched downloads land here
+  processed_data: "data/processed"     # train / test splits
+  logs:           "logs"               # rotating log files
+
+# ── Data ingestion settings ───────────────────────────────────────────────────
+data_ingestion:
+  test_size:    0.20     # 20 % held out for test
+  random_state: 42       # reproducibility seed
+  stratify_col: "experience_level"   # stratify split on this column (set null to skip)
+  train_filename: "train.csv"
+  test_filename:  "test.csv"
+
+# ── Artifact filenames ────────────────────────────────────────────────────────
+artifacts:
+  ingestion_report: "reports/data_ingestion_report.json"
