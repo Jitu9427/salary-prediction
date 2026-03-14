@@ -5,6 +5,7 @@ name:  Docker Build & Push
 # Only triggers on push to main (not PRs) to avoid redundant builds.
 # ──────────────────────────────────────────────────────────────────
 on:
+  workflow_dispatch:  # Allow manual trigger from GitHub Actions UI
   push:
     branches: [main]
     paths:
@@ -14,6 +15,7 @@ on:
       - "static/**"
       - "requirements_app.txt"
       - "Dockerfile"
+      - ".github/workflows/docker_build.yml"
 
 jobs:
   build-and-push:
