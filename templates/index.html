@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Salary Predictor | Premium MLOps</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Unicons -->
+    <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    
+    <!-- Animated Background -->
+    <div class="area" >
+        <ul class="circles">
+            <li></li><li></li><li></li><li></li><li></li>
+            <li></li><li></li><li></li><li></li><li></li>
+        </ul>
+    </div>
+
+    <main class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <i class="uil uil-robot"></i>
+                <h1>AI Salary Predictor</h1>
+            </div>
+            <p class="subtitle">Powered by a Stacking Regressor Model via Weights & Biases</p>
+        </header>
+
+        <!-- Main Workspace -->
+        <div class="workspace">
+            <!-- Left Side: Form -->
+            <div class="form-container glass-panel">
+                <h2><i class="uil uil-sliders-v-alt"></i> Model Parameters</h2>
+                
+                <form id="prediction-form" class="dynamic-form">
+                    
+                    <div class="form-group">
+                        <label for="work_year">Work Year</label>
+                        <select id="work_year" name="work_year" required>
+                            <option value="2023" selected>2023</option>
+                            <option value="2022">2022</option>
+                            <option value="2021">2021</option>
+                            <option value="2020">2020</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="experience_level">Experience Level</label>
+                        <select id="experience_level" name="experience_level" required>
+                            <option value="EN">Entry-Level / Junior (EN)</option>
+                            <option value="MI" selected>Mid-Level / Intermediate (MI)</option>
+                            <option value="SE">Senior-Level / Expert (SE)</option>
+                            <option value="EX">Executive-Level / Director (EX)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="employment_type">Employment Type</label>
+                        <select id="employment_type" name="employment_type" required>
+                            <option value="PT">Part-Time (PT)</option>
+                            <option value="FT" selected>Full-Time (FT)</option>
+                            <option value="CT">Contract (CT)</option>
+                            <option value="FL">Freelance (FL)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="job_title">Job Title</label>
+                        <!-- Using a datalist for typical roles but allowing free text -->
+                        <input type="text" id="job_title" name="job_title" list="job_titles" placeholder="e.g. Data Scientist" required autocomplete="off" value="Data Scientist">
+                        <datalist id="job_titles">
+                            <option value="Data Scientist">
+                            <option value="Data Engineer">
+                            <option value="Data Analyst">
+                            <option value="Machine Learning Engineer">
+                            <option value="AI Developer">
+                            <option value="Research Scientist">
+                            <option value="MLOps Engineer">
+                        </datalist>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group half">
+                            <label for="employee_residence">Residence</label>
+                            <input type="text" id="employee_residence" name="employee_residence" placeholder="ISO code (US, GB, IN...)" value="US" required maxlength="2" style="text-transform: uppercase;">
+                        </div>
+                        <div class="form-group half">
+                            <label for="company_location">HQ Location</label>
+                            <input type="text" id="company_location" name="company_location" placeholder="ISO code (US)" value="US" required maxlength="2" style="text-transform: uppercase;">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group half">
+                            <label for="remote_ratio">Remote %</label>
+                            <select id="remote_ratio" name="remote_ratio" required>
+                                <option value="0">0% (In-Office)</option>
+                                <option value="50">50% (Hybrid)</option>
+                                <option value="100" selected>100% (Remote)</option>
+                            </select>
+                        </div>
+                        <div class="form-group half">
+                            <label for="company_size">Company Size</label>
+                            <select id="company_size" name="company_size" required>
+                                <option value="S">Small (<50)</option>
+                                <option value="M" selected>Medium (50-250)</option>
+                                <option value="L">Large (>250)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="predict-btn" class="primary-btn">
+                        <span>Predict Salary</span> <i class="uil uil-arrow-right"></i>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Right Side: Interaction & Status -->
+            <div class="result-container glass-panel">
+                
+                <!-- Idle State -->
+                <div id="status-idle" class="result-state active">
+                    <div class="pulse-ring"></div>
+                    <i class="uil uil-server-network status-icon"></i>
+                    <h3>Model Running</h3>
+                    <p>W&B Stacking Regressor is loaded in memory and waiting for inference parameters.</p>
+                </div>
+
+                <!-- Loading State -->
+                <div id="status-loading" class="result-state">
+                    <div class="loader"></div>
+                    <h3>Processing...</h3>
+                    <p>Standardising numericals, encoding categoricals, and feeding meta-learner.</p>
+                </div>
+
+                <!-- Success State -->
+                <div id="status-success" class="result-state">
+                    <h4 class="fade-tag">PREDICTED BASE SALARY</h4>
+                    <h1 id="salary-output" class="gradient-text">--</h1>
+                    <div class="confidence-badge"><i class="uil uil-check-circle"></i> High Confidence Ensemble</div>
+                    
+                    <div class="model-info">
+                        <p class="small-text"><i class="uil uil-tag-alt"></i> Model: <span>stacking_model.pkl</span></p>
+                        <p class="small-text"><i class="uil uil-database"></i> Source: <span>W&B Registry (production)</span></p>
+                    </div>
+
+                    <button id="reset-btn" class="secondary-btn">New Prediction</button>
+                </div>
+
+                <!-- Error State -->
+                <div id="status-error" class="result-state">
+                    <i class="uil uil-exclamation-triangle error-icon"></i>
+                    <h3 class="error-text">Inference Failed</h3>
+                    <p id="error-message">Connection refused or model missing.</p>
+                    <button id="retry-btn" class="secondary-btn">Try Again</button>
+                </div>
+
+            </div>
+        </div>
+
+        <footer>
+            <p>MLOps Project • <i class="uil uil-github-alt"></i> Built with DVC, W&B, & FastAPI</p>
+        </footer>
+    </main>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
