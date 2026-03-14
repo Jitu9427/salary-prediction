@@ -78,8 +78,11 @@ jobs:
 
       - name: Deploy to Cluster
         run: |
-          # We use --validate=false because some CI environments don't have full cluster info 
-          # but we want to push the manifest changes immediately.
-          kubectl apply -f k8s/secret.yaml
+          # Create secret directly from GitHub Secrets (since secret.yaml is gitignored)
+          kubectl create secret generic wandb-secret \
+            --from-literal=WANDB_API_KEY=${{ secrets.WANDB_API_KEY }} \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+          # Apply the rest of the manifests
           kubectl apply -f k8s/deployment.yaml
           kubectl apply -f k8s/service.yaml
