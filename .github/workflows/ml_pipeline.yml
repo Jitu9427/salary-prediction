@@ -83,8 +83,14 @@ jobs:
       - name: Install pipeline dependencies
         run: pip install -r requirements.txt
 
-      - name: Run full DVC pipeline
-        run: python -m dvc repro
+      - name: Run pipeline stages
+        run: |
+          python main.py --stage data_ingestion
+          python main.py --stage data_preprocessing
+          python main.py --stage data_validation
+          python main.py --stage model_training
+          python main.py --stage model_evaluation
+          python main.py --stage model_registration
 
       - name: Upload evaluation metrics as artifact
         uses: actions/upload-artifact@v4
