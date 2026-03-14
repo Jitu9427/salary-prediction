@@ -61,3 +61,25 @@ jobs:
 
       - name: Print image digest
         run: echo "Pushed image digest - ${{ steps.build-push.outputs.digest }}"
+
+  deploy:
+    name: 🚀 Deploy to Kubernetes
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up kubectl
+        uses: azure/k8s-set-context@v4
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBECONFIG }}
+
+      - name: Deploy to Cluster
+        run: |
+          # We use --validate=false because some CI environments don't have full cluster info 
+          # but we want to push the manifest changes immediately.
+          kubectl apply -f k8s/secret.yaml
+          kubectl apply -f k8s/deployment.yaml
+          kubectl apply -f k8s/service.yaml
