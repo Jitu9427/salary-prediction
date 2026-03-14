@@ -28,17 +28,16 @@ document.addEventListener('DOMContentLoaded', () => {
         // Switch to Loading UI
         setState(statusLoading);
         
-        // Gather JSON payload exactly matching Pydantic schema
-        const payload = {
-            work_year: parseInt(document.getElementById('work_year').value),
-            experience_level: document.getElementById('experience_level').value,
-            employment_type: document.getElementById('employment_type').value,
-            job_title: document.getElementById('job_title').value,
-            employee_residence: document.getElementById('employee_residence').value.toUpperCase(),
-            remote_ratio: parseInt(document.getElementById('remote_ratio').value),
-            company_location: document.getElementById('company_location').value.toUpperCase(),
-            company_size: document.getElementById('company_size').value
-        };
+        // Gather JSON payload
+        // Group all required form inputs dynamically into a payload
+        const formData = new FormData(form);
+        const payload = {};
+        
+        for (let [key, value] of formData.entries()) {
+            // Try converting numbers, fallback to string if NaN
+            const numVal = Number(value);
+            payload[key] = isNaN(numVal) ? value : numVal;
+        }
 
         try {
             // Delay slightly for smooth animation feel

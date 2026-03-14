@@ -39,78 +39,140 @@
                 
                 <form id="prediction-form" class="dynamic-form">
                     
-                    <div class="form-group">
-                        <label for="work_year">Work Year</label>
-                        <select id="work_year" name="work_year" required>
-                            <option value="2023" selected>2023</option>
-                            <option value="2022">2022</option>
-                            <option value="2021">2021</option>
-                            <option value="2020">2020</option>
-                        </select>
-                    </div>
+                    <!-- Scrollable Form Container -->
+                    <div style="max-height: 400px; overflow-y: auto; padding-right: 15px; margin-bottom: 20px;" class="custom-scrollbar">
 
-                    <div class="form-group">
-                        <label for="experience_level">Experience Level</label>
-                        <select id="experience_level" name="experience_level" required>
-                            <option value="EN">Entry-Level / Junior (EN)</option>
-                            <option value="MI" selected>Mid-Level / Intermediate (MI)</option>
-                            <option value="SE">Senior-Level / Expert (SE)</option>
-                            <option value="EX">Executive-Level / Director (EX)</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="employment_type">Employment Type</label>
-                        <select id="employment_type" name="employment_type" required>
-                            <option value="PT">Part-Time (PT)</option>
-                            <option value="FT" selected>Full-Time (FT)</option>
-                            <option value="CT">Contract (CT)</option>
-                            <option value="FL">Freelance (FL)</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="job_title">Job Title</label>
-                        <!-- Using a datalist for typical roles but allowing free text -->
-                        <input type="text" id="job_title" name="job_title" list="job_titles" placeholder="e.g. Data Scientist" required autocomplete="off" value="Data Scientist">
-                        <datalist id="job_titles">
-                            <option value="Data Scientist">
-                            <option value="Data Engineer">
-                            <option value="Data Analyst">
-                            <option value="Machine Learning Engineer">
-                            <option value="AI Developer">
-                            <option value="Research Scientist">
-                            <option value="MLOps Engineer">
-                        </datalist>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group half">
-                            <label for="employee_residence">Residence</label>
-                            <input type="text" id="employee_residence" name="employee_residence" placeholder="ISO code (US, GB, IN...)" value="US" required maxlength="2" style="text-transform: uppercase;">
+                        <!-- Personal & Role -->
+                        <h4 style="margin: 15px 0 5px 0; color:var(--primary); font-weight:600; border-bottom: 1px solid var(--border);">Role Details</h4>
+                        <div class="form-row">
+                            <div class="form-group half">
+                                <label for="job_role">Job Role</label>
+                                <input type="text" id="job_role" name="job_role" value="Data Scientist" required>
+                            </div>
+                            <div class="form-group half">
+                                <label for="ai_specialization">AI Specialization</label>
+                                <input type="text" id="ai_specialization" name="ai_specialization" value="Machine Learning" required>
+                            </div>
                         </div>
-                        <div class="form-group half">
-                            <label for="company_location">HQ Location</label>
-                            <input type="text" id="company_location" name="company_location" placeholder="ISO code (US)" value="US" required maxlength="2" style="text-transform: uppercase;">
+                        <div class="form-row">
+                            <div class="form-group half">
+                                <label for="experience_level">Job Experience Level</label>
+                                <select id="experience_level" name="experience_level">
+                                    <option value="Entry">Entry</option>
+                                    <option value="Mid" selected>Mid</option>
+                                    <option value="Senior">Senior</option>
+                                </select>
+                            </div>
+                            <div class="form-group half">
+                                <label for="experience_years">Experience Years</label>
+                                <input type="number" step="0.5" id="experience_years" name="experience_years" value="5.0" required>
+                            </div>
                         </div>
-                    </div>
+                        <div class="form-row">
+                            <div class="form-group half">
+                                <label for="education_required">Education Required</label>
+                                <input type="text" id="education_required" name="education_required" value="Master's" required>
+                            </div>
+                            <div class="form-group half">
+                                <label for="country">Country</label>
+                                <input type="text" id="country" name="country" value="United States" required>
+                            </div>
+                        </div>
 
-                    <div class="form-row">
-                        <div class="form-group half">
-                            <label for="remote_ratio">Remote %</label>
-                            <select id="remote_ratio" name="remote_ratio" required>
-                                <option value="0">0% (In-Office)</option>
-                                <option value="50">50% (Hybrid)</option>
-                                <option value="100" selected>100% (Remote)</option>
-                            </select>
+                        <!-- Company Info -->
+                        <h4 style="margin: 25px 0 5px 0; color:var(--primary); font-weight:600; border-bottom: 1px solid var(--border);">Company & Environment</h4>
+                        <div class="form-row">
+                            <div class="form-group half">
+                                <label for="industry">Industry</label>
+                                <input type="text" id="industry" name="industry" value="Technology" required>
+                            </div>
+                            <div class="form-group half">
+                                <label for="company_size">Company Size</label>
+                                <select id="company_size" name="company_size">
+                                    <option value="Small">Small</option>
+                                    <option value="Medium" selected>Medium</option>
+                                    <option value="Large">Large</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="form-group half">
-                            <label for="company_size">Company Size</label>
-                            <select id="company_size" name="company_size" required>
-                                <option value="S">Small (<50)</option>
-                                <option value="M" selected>Medium (50-250)</option>
-                                <option value="L">Large (>250)</option>
-                            </select>
+                        <div class="form-row">
+                            <div class="form-group half">
+                                <label for="work_mode">Work Mode</label>
+                                <select id="work_mode" name="work_mode">
+                                    <option value="Remote" selected>Remote</option>
+                                    <option value="Hybrid">Hybrid</option>
+                                    <option value="On-Site">On-Site</option>
+                                </select>
+                            </div>
+                            <div class="form-group half">
+                                <label for="weekly_hours">Weekly Hours</label>
+                                <input type="number" id="weekly_hours" name="weekly_hours" value="40" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group half">
+                                <label for="vacation_days">Vacation Days</label>
+                                <input type="number" id="vacation_days" name="vacation_days" value="20" required>
+                            </div>
+                            <div class="form-group half">
+                                <label for="year">Year</label>
+                                <input type="number" id="year" name="year" value="2024" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group half">
+                                <label for="interview_rounds">Interview Rounds</label>
+                                <input type="number" id="interview_rounds" name="interview_rounds" value="3" required>
+                            </div>
+                            <div class="form-group half">
+                                <label for="bonus_usd">Bonus ($ USD)</label>
+                                <input type="number" id="bonus_usd" name="bonus_usd" value="10000" required>
+                            </div>
+                        </div>
+
+                        <!-- Macro & Economic Drivers -->
+                        <h4 style="margin: 25px 0 5px 0; color:var(--primary); font-weight:600; border-bottom: 1px solid var(--border);">Economic Drivers (0 to 100)</h4>
+                        <div class="form-row">
+                            <div class="form-group half"><label>Company Rating</label><input type="number" step="0.1" name="company_rating" value="4.5"></div>
+                            <div class="form-group half"><label>Job Openings</label><input type="number" name="job_openings" value="50"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group half"><label>Hiring Difficulty</label><input type="number" step="0.1" name="hiring_difficulty_score" value="70"></div>
+                            <div class="form-group half"><label>Layoff Risk</label><input type="number" step="0.1" name="layoff_risk" value="15"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group half"><label>AI Adoption</label><input type="number" step="0.1" name="ai_adoption_score" value="80"></div>
+                            <div class="form-group half"><label>Funding (Billion)</label><input type="number" step="0.1" name="company_funding_billion" value="2.5"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group half"><label>Economic Index</label><input type="number" step="0.1" name="economic_index" value="105"></div>
+                            <div class="form-group half"><label>AI Maturity Years</label><input type="number" step="0.5" name="ai_maturity_years" value="4"></div>
+                        </div>
+
+                        <!-- Secondary Metrics -->
+                        <h4 style="margin: 25px 0 5px 0; color:var(--primary); font-weight:600; border-bottom: 1px solid var(--border);">Secondary Metrics</h4>
+                        <div class="form-row">
+                            <div class="form-group half"><label>Offer Acceptance (%)</label><input type="number" step="0.1" name="offer_acceptance_rate" value="85"></div>
+                            <div class="form-group half"><label>Tax Rate (%)</label><input type="number" step="0.1" name="tax_rate_percent" value="25"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group half"><label>Skill Demand</label><input type="number" step="0.1" name="skill_demand_score" value="90"></div>
+                            <div class="form-group half"><label>Automation Risk</label><input type="number" step="0.1" name="automation_risk" value="20"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group half"><label>Job Security</label><input type="number" step="0.1" name="job_security_score" value="85"></div>
+                            <div class="form-group half"><label>Career Growth</label><input type="number" step="0.1" name="career_growth_score" value="75"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group half"><label>Work Life Balance</label><input type="number" step="0.1" name="work_life_balance_score" value="80"></div>
+                            <div class="form-group half"><label>Promotion Speed</label><input type="number" step="0.1" name="promotion_speed" value="3"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group half"><label>Salary Percentile</label><input type="number" step="0.1" name="salary_percentile" value="75"></div>
+                            <div class="form-group half"><label>Cost of Living Index</label><input type="number" step="0.1" name="cost_of_living_index" value="110"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group half"><label>Employee Satisfaction</label><input type="number" step="0.1" name="employee_satisfaction" value="88"></div>
                         </div>
                     </div>
 

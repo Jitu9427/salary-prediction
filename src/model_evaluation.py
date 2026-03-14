@@ -48,15 +48,19 @@ def run_model_evaluation(config_path: str = "config/config.yaml") -> dict:
     models_dir = Path("models")
     preprocessor = joblib.load(models_dir / "preprocessor.pkl")
     model = joblib.load(models_dir / "stacking_model.pkl")
+    scaler_y = joblib.load(models_dir / "target_scaler.pkl")
     
     # Predict
     X_trans = preprocessor.transform(X)
     y_pred = model.predict(X_trans)
     
+    # Scale true target
+    y_scaled = scaler_y.transform(y_true.values.reshape(-1, 1)).flatten()
+    
     # Metrics
-    rmse = float(root_mean_squared_error(y_true, y_pred))
-    mae  = float(mean_absolute_error(y_true, y_pred))
-    r2   = float(r2_score(y_true, y_pred))
+    rmse = float(root_mean_squared_error(y_scaled, y_pred))
+    mae  = float(mean_absolute_error(y_scaled, y_pred))
+    r2   = float(r2_score(y_scaled, y_pred))
     
     metrics = {"rmse": rmse, "mae": mae, "r2": r2}
     

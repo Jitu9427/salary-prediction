@@ -89,17 +89,16 @@ class DataIngestionConfig:
     # We define the minimum required columns and their expected dtypes.
     required_columns: tuple[str, ...] = field(
         default=(
-            "work_year",
-            "experience_level",
-            "employment_type",
-            "job_title",
-            "salary",
-            "salary_currency",
-            "salary_in_usd",
-            "employee_residence",
-            "remote_ratio",
-            "company_location",
-            "company_size",
+            'id', 'country', 'job_role', 'ai_specialization', 'experience_level', 
+            'experience_years', 'education_required', 'industry', 'company_size', 
+            'salary_usd', 'bonus_usd', 'interview_rounds', 'year', 'work_mode', 
+            'weekly_hours', 'company_rating', 'job_openings', 'hiring_difficulty_score', 
+            'layoff_risk', 'ai_adoption_score', 'company_funding_billion', 
+            'economic_index', 'ai_maturity_years', 'offer_acceptance_rate', 
+            'tax_rate_percent', 'vacation_days', 'skill_demand_score', 
+            'automation_risk', 'job_security_score', 'career_growth_score', 
+            'work_life_balance_score', 'promotion_speed', 'salary_percentile', 
+            'cost_of_living_index', 'employee_satisfaction'
         )
     )
 

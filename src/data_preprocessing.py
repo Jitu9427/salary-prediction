@@ -56,7 +56,7 @@ def run_data_preprocessing(config_path: str = "config/config.yaml") -> dict:
         logger.info(f"Dropped {initial_train_len - len(train_df)} rows due to IQR outliers.")
         
     # Feature engineering: Example drop redundant columns
-    cols_to_drop = ["salary", "salary_currency"] # salary is redundant with salary_in_usd
+    cols_to_drop = ["salary", "salary_currency", "Unnamed: 0", "id"] # salary is redundant with salary_in_usd, ID cols must be dropped
     for c in cols_to_drop:
         if c in train_df.columns:
             train_df = train_df.drop(columns=[c])

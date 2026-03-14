@@ -16,7 +16,7 @@ stages:
           - directories
           - data_ingestion
     outs:
-      - data/raw/ds_salaries.csv:
+      - data/raw/global_ai_jobs.csv:
           cache: true
           persist: false
       - data/processed/train.csv:
@@ -83,6 +83,8 @@ stages:
           cache: true
       - models/preprocessor.pkl:
           cache: true
+      - models/target_scaler.pkl:
+          cache: true
 
   # ────────────────────────────────────────────────────────────────────────────
   # Stage 5 – Model Evaluation
@@ -94,6 +96,7 @@ stages:
       - src/model_evaluation.py
       - models/stacking_model.pkl
       - models/preprocessor.pkl
+      - models/target_scaler.pkl
       - data/processed/test_processed.csv
       - config/config.yaml
       - config/params.yaml
@@ -113,6 +116,8 @@ stages:
     deps:
       - src/model_registration.py
       - models/stacking_model.pkl
+      - models/preprocessor.pkl
+      - models/target_scaler.pkl
       - reports/evaluation_metrics.json
       - config/config.yaml
     outs: []

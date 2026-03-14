@@ -6,8 +6,8 @@
 
 # ── Kaggle dataset ────────────────────────────────────────────────────────────
 kaggle:
-  dataset: "ruchi798/data-science-job-salaries"   # <username>/<dataset-slug> on Kaggle
-  filename: "ds_salaries.csv"              # file inside the downloaded zip
+  dataset: "mohankrishnathalla/global-ai-and-data-jobs-salary-dataset"   # <username>/<dataset-slug> on Kaggle
+  filename: "global_ai_jobs.csv"              # file inside the downloaded zip
 
 # ── Directory layout ──────────────────────────────────────────────────────────
 directories:
@@ -18,8 +18,8 @@ directories:
 # ── Data ingestion settings ───────────────────────────────────────────────────
 data_ingestion:
   test_size:    0.20     # 20 % held out for test
-  random_state: 42       # reproducibility seed
-  stratify_col: "experience_level"   # stratify split on this column (set null to skip)
+  random_state: 22       # Notebook uses 22
+  stratify_col: null     # Notebook does not stratify
   train_filename: "train.csv"
   test_filename:  "test.csv"
 

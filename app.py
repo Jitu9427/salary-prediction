@@ -33,7 +33,8 @@ logger = get_logger("fastapi_app")
 # ── Global Model State ────────────────────────────────────────────────────────
 models_cache = {
     "preprocessor": None,
-    "model": None
+    "model": None,
+    "scaler_y": None
 }
 
 @asynccontextmanager
@@ -49,12 +50,14 @@ async def lifespan(app: FastAPI):
     model_dir = download_production_model()
     prep_path = model_dir / "preprocessor.pkl"
     model_path = model_dir / "stacking_model.pkl"
+    scaler_path = model_dir / "target_scaler.pkl"
     
     # 2. Load into memory
-    if prep_path.exists() and model_path.exists():
-        logger.info("Loading preprocessor and model into memory...")
+    if prep_path.exists() and model_path.exists() and scaler_path.exists():
+        logger.info("Loading preprocessor, model, and target scaler into memory...")
         models_cache["preprocessor"] = joblib.load(prep_path)
         models_cache["model"] = joblib.load(model_path)
+        models_cache["scaler_y"] = joblib.load(scaler_path)
         logger.info("✅ Models loaded successfully. Ready for inference!")
     else:
         logger.error(f"Models not found at {model_dir}! Inference will fail.")
@@ -79,14 +82,39 @@ templates = Jinja2Templates(directory="templates")
 
 # ── Pydantic Request Model ────────────────────────────────────────────────────
 class PredictionRequest(BaseModel):
-    work_year: int
+    country: str
+    job_role: str
+    ai_specialization: str
     experience_level: str
-    employment_type: str
-    job_title: str
-    employee_residence: str
-    remote_ratio: int
-    company_location: str
+    experience_years: float
+    education_required: str
+    industry: str
     company_size: str
+    bonus_usd: float
+    interview_rounds: int
+    year: int
+    work_mode: str
+    weekly_hours: float
+    company_rating: float
+    job_openings: float
+    hiring_difficulty_score: float
+    layoff_risk: float
+    ai_adoption_score: float
+    company_funding_billion: float
+    economic_index: float
+    ai_maturity_years: float
+    offer_acceptance_rate: float
+    tax_rate_percent: float
+    vacation_days: float
+    skill_demand_score: float
+    automation_risk: float
+    job_security_score: float
+    career_growth_score: float
+    work_life_balance_score: float
+    promotion_speed: float
+    salary_percentile: float
+    cost_of_living_index: float
+    employee_satisfaction: float
 
 
 # ── Routes ────────────────────────────────────────────────────────────────────
@@ -101,10 +129,10 @@ async def predict_salary(req: PredictionRequest):
     Inference endpoint:
     Takes structured JSON → converts to DataFrame → standardizes/encodes → stacking prediction → returns salary
     """
-    if models_cache["preprocessor"] is None or models_cache["model"] is None:
+    if models_cache["preprocessor"] is None or models_cache["model"] is None or models_cache["scaler_y"] is None:
         raise HTTPException(
             status_code=503, 
-            detail="Models are not loaded on server. Please ensure they were downloaded correctly."
+            detail="Models or scalers are not loaded on server. Please ensure they were downloaded correctly."
         )
         
     try:
@@ -115,10 +143,14 @@ async def predict_salary(req: PredictionRequest):
         # 2. Transform numericals & categoricals
         X_trans = models_cache["preprocessor"].transform(df)
         
-        # 3. Predict via Stacking Regressor
-        pred = models_cache["model"].predict(X_trans)[0]
+        # 3. Predict via Stacking Regressor (Returns standard deviations!)
+        raw_pred = models_cache["model"].predict(X_trans)
         
-        # 4. Return formatted response
+        # 4. Inverse Transform back to USD Dollars
+        # reshape(-1, 1) needed for sklearn scalers
+        pred = models_cache["scaler_y"].inverse_transform(raw_pred.reshape(-1, 1))[0][0]
+        
+        # 5. Return formatted response
         logger.info(f"Made prediction for {req.job_title} ({req.experience_level}) -> ${pred:,.2f}")
         return {
             "predicted_salary_usd": round(pred, 2),

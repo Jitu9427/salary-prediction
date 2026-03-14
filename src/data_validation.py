@@ -46,7 +46,7 @@ def run_data_validation(config_path: str = "config/config.yaml") -> dict:
         report["errors"].append(msg)
         
     # 2. Target presence
-    target = "salary_in_usd"
+    target = "salary_usd"
     if target not in train_df.columns:
         msg = f"Target column '{target}' missing."
         logger.error(msg)

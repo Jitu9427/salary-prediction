@@ -18,10 +18,13 @@ from pathlib import Path
 # scikit-learn
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, StackingRegressor
+from sklearn.preprocessing import StandardScaler, OrdinalEncoder
+from sklearn.ensemble import StackingRegressor
 from sklearn.linear_model import Ridge
 from sklearn.metrics import root_mean_squared_error, r2_score
+from sklearn.model_selection import KFold
+from lightgbm import LGBMRegressor
+from xgboost import XGBRegressor
 
 _ROOT = Path(__file__).resolve().parent.parent
 if str(_ROOT) not in sys.path:
@@ -53,13 +56,18 @@ def run_model_training(config_path: str = "config/config.yaml") -> dict:
     num_cols = X.select_dtypes(include=['int64', 'float64']).columns.tolist()
     cat_cols = X.select_dtypes(exclude=['int64', 'float64']).columns.tolist()
     
-    logger.info(f"Found {len(num_cols)} numerical and {len(cat_cols)} categorical features.")
+    logger.info(f"Features - Num: {num_cols} | Cat: {cat_cols}")
     
-    # ── Preprocessor ───────────────────────────────────────────────
+    # ── Mimicking Notebook Preprocessing exactly ───────────────────
+    # In the notebook, the target 'salary_usd' is scaled with StandardScaler
+    scaler_y = StandardScaler()
+    y_scaled = scaler_y.fit_transform(y.values.reshape(-1, 1)).flatten()
+    
     preprocessor = ColumnTransformer(
         transformers=[
             ('num', StandardScaler(), num_cols),
-            ('cat', OneHotEncoder(handle_unknown='ignore', sparse_output=False), cat_cols)
+            # OrdinalEncoder acts essentially like LabelEncoder for multiple columns
+            ('cat', OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1), cat_cols)
         ]
     )
     
@@ -68,15 +76,20 @@ def run_model_training(config_path: str = "config/config.yaml") -> dict:
     ml = params["meta_learner"]
     
     estimators = [
-        ('rf',    RandomForestRegressor(**bm["random_forest"])),
-        ('gbm',   GradientBoostingRegressor(**bm["gradient_boosting"])),
-        ('ridge', Ridge(**bm["ridge"]))
+        ('lgb', LGBMRegressor(**bm["lightgbm"])),
+        ('xgb', XGBRegressor(**bm["xgboost"]))
     ]
+    
+    cv_kfold = KFold(
+        n_splits=ml["cv_folds"], 
+        shuffle=ml.get("shuffle", True), 
+        random_state=ml.get("random_state", 23)
+    )
     
     stacking = StackingRegressor(
         estimators=estimators,
         final_estimator=Ridge(alpha=ml["alpha"]),
-        cv=ml["cv_folds"],
+        cv=cv_kfold,
         n_jobs=-1
     )
     
@@ -99,14 +112,14 @@ def run_model_training(config_path: str = "config/config.yaml") -> dict:
     
     # ── Training ────────────────────────────────────────────────────
     logger.info("Fitting model pipeline ... this may take a moment.")
-    pipeline.fit(X, y)
+    pipeline.fit(X, y_scaled) # Fitting on scaled target to match notebook MAE
     logger.info("Model fitted successfully.")
 
     # ── Training Metrics ──────────────────────────────────────────
     y_train_pred = pipeline.predict(X)
-    train_rmse = float(root_mean_squared_error(y, y_train_pred))
-    train_r2   = float(r2_score(y, y_train_pred))
-    logger.info(f"Train RMSE: {train_rmse:.2f} | Train R²: {train_r2:.4f}")
+    train_rmse = float(root_mean_squared_error(y_scaled, y_train_pred))
+    train_r2   = float(r2_score(y_scaled, y_train_pred))
+    logger.info(f"Train RMSE: {train_rmse:.4f} | Train R²: {train_r2:.4f}")
     
     # ── Saving ─────────────────────────────────────────────────────
     models_dir = Path("models")
@@ -117,8 +130,9 @@ def run_model_training(config_path: str = "config/config.yaml") -> dict:
     
     joblib.dump(fitted_preprocessor, models_dir / "preprocessor.pkl")
     joblib.dump(stack_model, models_dir / "stacking_model.pkl")
+    joblib.dump(scaler_y, models_dir / "target_scaler.pkl") # Save to inverse transform later!
     
-    logger.info("Saved models/preprocessor.pkl and models/stacking_model.pkl")
+    logger.info("Saved models/preprocessor.pkl, stacking_model.pkl, and target_scaler.pkl")
     
     # ── Log Metrics + Artifact to W&B ──────────────────────────────
     if use_wandb and run:
