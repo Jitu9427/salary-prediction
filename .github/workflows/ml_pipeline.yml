@@ -1,0 +1,92 @@
+name:  ML Pipeline CI
+
+# ──────────────────────────────────────────────────────────────────
+# Triggers on any push to main or a pull request targeting main
+# that touches the src/, config/ or params files.
+# ──────────────────────────────────────────────────────────────────
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "config/**"
+      - "main.py"
+      - "requirements.txt"
+      - "dvc.yaml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "config/**"
+
+jobs:
+  # ── Job 1: Lint & Syntax Check ─────────────────────────────────
+  lint:
+    name: 🔍 Lint & Syntax Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install lint tools
+        run: pip install flake8 pyflakes
+
+      - name: Run syntax check on all source files
+        run: |
+          python -m py_compile src/data_ingestion.py
+          python -m py_compile src/data_preprocessing.py
+          python -m py_compile src/data_validation.py
+          python -m py_compile src/model_training.py
+          python -m py_compile src/model_evaluation.py
+          python -m py_compile src/model_registration.py
+          python -m py_compile src/model_server.py
+          python -m py_compile app.py
+          python -m py_compile main.py
+          echo "All files passed syntax check!"
+
+      - name: Flake8 style check (warnings only)
+        run: |
+          flake8 src/ app.py main.py utils/ \
+            --max-line-length=120 \
+            --extend-ignore=E501,W503,E203 \
+            --exit-zero
+
+  # ── Job 2: Full DVC Pipeline ────────────────────────────────────
+  run-pipeline:
+    name: 🚀 Run DVC Pipeline
+    runs-on: ubuntu-latest
+    needs: lint
+    env:
+      KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+      KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
+      WANDB_API_KEY: ${{ secrets.WANDB_API_KEY }}
+      PYTHONIOENCODING: utf-8
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install pipeline dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run full DVC pipeline
+        run: python -m dvc repro
+
+      - name: Upload evaluation metrics as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: evaluation-metrics
+          path: reports/evaluation_metrics.json
+          retention-days: 30
