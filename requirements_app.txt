@@ -1,0 +1,22 @@
+# ── App-only requirements (for Docker/deployment) ─────────────────────────────
+# These are ONLY the packages needed to serve the FastAPI application.
+# DVC, training & pipeline packages are NOT included.
+
+# Web server
+fastapi==0.115.12
+uvicorn[standard]==0.34.0
+jinja2==3.1.6
+python-multipart==0.0.20
+
+# Data & ML (inference only)
+pandas==2.2.3
+scikit-learn==1.6.1
+joblib==1.4.2
+numpy==2.2.3
+
+# W&B (to download production model artifact on startup)
+wandb==0.25.1
+
+# Config & env
+python-dotenv==1.0.1
+pydantic==2.10.3

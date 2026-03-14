@@ -1,0 +1,41 @@
+# ── Python ──────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+
+# ── Virtual environments ─────────────────────────────────────────
+.env
+.venv
+venv/
+env/
+
+# ── ML artifacts (fetched from W&B at runtime) ──────────────────
+data/
+models/
+reports/
+logs/
+wandb/
+
+# ── DVC (not needed in app container) ───────────────────────────
+.dvc/
+dvc.lock
+dvc.yaml
+
+# ── Jupyter ──────────────────────────────────────────────────────
+notebook/
+*.ipynb
+.ipynb_checkpoints/
+
+# ── Git ───────────────────────────────────────────────────────────
+.git/
+.gitignore
+
+# ── IDE & OS ─────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.DS_Store
+Thumbs.db
+
+# ── Full pipeline requirements (too heavy for app) ───────────────
+requirements.txt
