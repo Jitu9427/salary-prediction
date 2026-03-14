@@ -78,11 +78,11 @@ jobs:
 
       - name: Deploy to Cluster
         run: |
-          # Create secret directly from GitHub Secrets (since secret.yaml is gitignored)
+          # Create secret directly from GitHub Secrets
           kubectl create secret generic wandb-secret \
             --from-literal=WANDB_API_KEY=${{ secrets.WANDB_API_KEY }} \
-            --dry-run=client -o yaml | kubectl apply -f -
+            --dry-run=client -o yaml | kubectl apply -f - --validate=false
 
-          # Apply the rest of the manifests
-          kubectl apply -f k8s/deployment.yaml
-          kubectl apply -f k8s/service.yaml
+          # Apply the rest of the manifests (skipping validation since cluster is local)
+          kubectl apply -f k8s/deployment.yaml --validate=false
+          kubectl apply -f k8s/service.yaml --validate=false
