@@ -19,7 +19,7 @@ wandb/
 k8s/secret.yaml
 # C extensions
 *.so
-docs/
+
 # Distribution / packaging
 .Python
 build/
