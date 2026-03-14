@@ -4,15 +4,17 @@ __pycache__/
 *$py.class
 
 Notebook
-data
-logs
-models
-reports
-logs
-.dvc
+data/
+logs/
+models/
+reports/
 
+# Environment / Secrets
+.env
 
-
+# DVC and Weights & Biases
+.dvc/
+wandb/
 # C extensions
 *.so
 
