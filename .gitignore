@@ -15,6 +15,9 @@ reports/
 # DVC and Weights & Biases
 .dvc/
 wandb/
+
+# Kubernetes secrets (contains real API keys - never commit!)
+k8s/secret.yaml
 # C extensions
 *.so
 

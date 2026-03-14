@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: salary-predictor
+  labels:
+    app: salary-predictor
+spec:
+  replicas: 2                   # Run 2 pods for reliability
+  selector:
+    matchLabels:
+      app: salary-predictor
+  template:
+    metadata:
+      labels:
+        app: salary-predictor
+    spec:
+      containers:
+        - name: salary-predictor
+          image: jitu369/salary-predictor:latest   # Pulled from Docker Hub
+          imagePullPolicy: Always           # Always pull latest from Docker Hub
+          ports:
+            - containerPort: 8000
+          env:
+            - name: WANDB_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: wandb-secret       # Reads from k8s/secret.yaml
+                  key: WANDB_API_KEY
+            - name: PYTHONIOENCODING
+              value: "utf-8"
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8000
+            initialDelaySeconds: 60        # Give time for W&B model download
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8000
+            initialDelaySeconds: 90
+            periodSeconds: 30
