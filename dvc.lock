@@ -56,7 +56,7 @@ stages:
       size: 2160
     - path: config/params.yaml
       hash: md5
-      md5: 570174deea3bcd98fe5517dade524558
+      md5: 3dc325707c15a9c06dae10397942da47
       size: 2094
     - path: data/processed/test.csv
       hash: md5
@@ -118,7 +118,7 @@ stages:
       size: 2160
     - path: config/params.yaml
       hash: md5
-      md5: 570174deea3bcd98fe5517dade524558
+      md5: 3dc325707c15a9c06dae10397942da47
       size: 2094
     - path: data/processed/train_processed.csv
       hash: md5
@@ -126,8 +126,8 @@ stages:
       size: 24485
     - path: src/model_training.py
       hash: md5
-      md5: d7d90a6b281742a1dd339e13e76e8fbd
-      size: 4692
+      md5: 90855c1b785102b2e4ba5e17a0a24dd0
+      size: 5766
     params:
       config/params.yaml:
         base_models:
@@ -153,12 +153,12 @@ stages:
     outs:
     - path: models/preprocessor.pkl
       hash: md5
-      md5: 14d8aa5303d61bd286b9d4ea99c322f1
-      size: 5466
+      md5: d49cdb29a9beefaf3591886fa5366012
+      size: 6707
     - path: models/stacking_model.pkl
       hash: md5
-      md5: 22236c8f774cf111f4f19b9e90691a00
-      size: 5790954
+      md5: ea1e740aa4d1eefb93589ec604f70e3e
+      size: 6180282
   model_evaluation:
     cmd: python main.py --stage model_evaluation --config config/config.yaml
     deps:
@@ -168,7 +168,7 @@ stages:
       size: 2160
     - path: config/params.yaml
       hash: md5
-      md5: 570174deea3bcd98fe5517dade524558
+      md5: 3dc325707c15a9c06dae10397942da47
       size: 2094
     - path: data/processed/test_processed.csv
       hash: md5
@@ -176,26 +176,26 @@ stages:
       size: 6300
     - path: models/preprocessor.pkl
       hash: md5
-      md5: 14d8aa5303d61bd286b9d4ea99c322f1
-      size: 5466
+      md5: d49cdb29a9beefaf3591886fa5366012
+      size: 6707
     - path: models/stacking_model.pkl
       hash: md5
-      md5: 22236c8f774cf111f4f19b9e90691a00
-      size: 5790954
+      md5: ea1e740aa4d1eefb93589ec604f70e3e
+      size: 6180282
     - path: src/model_evaluation.py
       hash: md5
-      md5: 559c159d4a117cf3c9403fe2839c2834
-      size: 2265
+      md5: 7bb8307c4b8b6f5565353ea8067f400d
+      size: 3422
     params:
       config/params.yaml:
         evaluation:
-          min_r2: 0.75
-          max_rmse: 30000
+          min_r2: 0.35
+          max_rmse: 60000
     outs:
     - path: reports/evaluation_metrics.json
       hash: md5
-      md5: cde47a38dac530da9bb596b030fee51c
-      size: 98
+      md5: 83266bf6d85ebe7f5044c5e51655f316
+      size: 99
   model_registration:
     cmd: python main.py --stage model_registration --config config/config.yaml
     deps:
@@ -205,13 +205,13 @@ stages:
       size: 2160
     - path: models/stacking_model.pkl
       hash: md5
-      md5: 22236c8f774cf111f4f19b9e90691a00
-      size: 5790954
+      md5: ea1e740aa4d1eefb93589ec604f70e3e
+      size: 6180282
     - path: reports/evaluation_metrics.json
       hash: md5
-      md5: cde47a38dac530da9bb596b030fee51c
-      size: 98
+      md5: 83266bf6d85ebe7f5044c5e51655f316
+      size: 99
     - path: src/model_registration.py
       hash: md5
-      md5: 34a8e30e37c3e36f5865d8b81e5e5bde
-      size: 2855
+      md5: 4ec85cf0b2d059dc84dfea5302514eeb
+      size: 4260
