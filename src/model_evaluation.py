@@ -4,11 +4,13 @@ src/model_evaluation.py
 Model-Evaluation Component.
 
 Loads the preprocessor and model, evaluates on the test set,
-computes metrics, and dumps them to `reports/evaluation_metrics.json`.
+computes metrics, logs them to Weights & Biases, and saves them
+to `reports/evaluation_metrics.json`.
 """
 
 import sys
 import json
+import os
 import joblib
 import pandas as pd
 import yaml
@@ -20,6 +22,7 @@ if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
 from utils.logger import get_logger
+import wandb
 
 logger = get_logger("model_evaluation")
 
@@ -52,18 +55,37 @@ def run_model_evaluation(config_path: str = "config/config.yaml") -> dict:
     
     # Metrics
     rmse = float(root_mean_squared_error(y_true, y_pred))
-    mae = float(mean_absolute_error(y_true, y_pred))
-    r2 = float(r2_score(y_true, y_pred))
+    mae  = float(mean_absolute_error(y_true, y_pred))
+    r2   = float(r2_score(y_true, y_pred))
     
-    metrics = {
-        "rmse": rmse,
-        "mae": mae,
-        "r2": r2
-    }
+    metrics = {"rmse": rmse, "mae": mae, "r2": r2}
     
     logger.info(f"Test RMSE: {rmse:.2f} | MAE: {mae:.2f} | R²: {r2:.4f}")
     
-    # Save Metrics
+    # ── Log to W&B ───────────────────────────────────────────────────────────
+    use_wandb = bool(os.getenv("WANDB_API_KEY"))
+    if use_wandb:
+        try:
+            run = wandb.init(
+                project="salary-prediction",
+                job_type="evaluate",
+                name="model_evaluation",
+                config=params
+            )
+            # Log all evaluation metrics to W&B
+            wandb.log({
+                "eval/rmse": rmse,
+                "eval/mae": mae,
+                "eval/r2": r2
+            })
+            logger.info("✅ Metrics logged to Weights & Biases (eval/rmse, eval/mae, eval/r2)")
+            wandb.finish()
+        except Exception as e:
+            logger.error(f"W&B logging failed: {e}")
+    else:
+        logger.warning("WANDB_API_KEY not set – metrics saved locally only.")
+    
+    # ── Save Metrics Locally ─────────────────────────────────────────────────
     reports_dir = Path("reports")
     reports_dir.mkdir(exist_ok=True)
     report_path = reports_dir / "evaluation_metrics.json"

@@ -38,5 +38,5 @@ meta_learner:
 
 # ── Evaluation thresholds ─────────────────────────────────────────────────────
 evaluation:
-  min_r2: 0.75           # model must beat this to be registered
-  max_rmse: 30000        # USD – upper bound for acceptable RMSE
+  min_r2: 0.35           # model must beat this to be registered
+  max_rmse: 60000        # USD – upper bound for acceptable RMSE

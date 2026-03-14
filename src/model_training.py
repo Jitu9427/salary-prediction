@@ -5,7 +5,7 @@ Model-Training Component.
 
 Trains a pipeline composed of preprocessing (StandardScaler + OneHotEncoder)
 and a StackingRegressor on the train_processed.csv data.
-Logs experiments to Weights & Biases if configured.
+Logs hyperparameters, training metrics, and the model artifact to W&B.
 """
 
 import sys
@@ -21,6 +21,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, StackingRegressor
 from sklearn.linear_model import Ridge
+from sklearn.metrics import root_mean_squared_error, r2_score
 
 _ROOT = Path(__file__).resolve().parent.parent
 if str(_ROOT) not in sys.path:
@@ -67,8 +68,8 @@ def run_model_training(config_path: str = "config/config.yaml") -> dict:
     ml = params["meta_learner"]
     
     estimators = [
-        ('rf', RandomForestRegressor(**bm["random_forest"])),
-        ('gbm', GradientBoostingRegressor(**bm["gradient_boosting"])),
+        ('rf',    RandomForestRegressor(**bm["random_forest"])),
+        ('gbm',   GradientBoostingRegressor(**bm["gradient_boosting"])),
         ('ridge', Ridge(**bm["ridge"]))
     ]
     
@@ -84,25 +85,33 @@ def run_model_training(config_path: str = "config/config.yaml") -> dict:
         ('model', stacking)
     ])
     
-    # ── Tracking ───────────────────────────────────────────────────
+    # ── W&B Run ────────────────────────────────────────────────────
     use_wandb = bool(os.getenv("WANDB_API_KEY"))
+    run = None
     if use_wandb:
-        wandb.init(project="salary-prediction", job_type="train", config=params)
+        run = wandb.init(
+            project="salary-prediction",
+            job_type="train",
+            name="stacking_regressor_train",
+            config=params   # Logs ALL hyperparams from params.yaml
+        )
+        logger.info("W&B run initialized – hyperparameters logged.")
     
+    # ── Training ────────────────────────────────────────────────────
     logger.info("Fitting model pipeline ... this may take a moment.")
     pipeline.fit(X, y)
     logger.info("Model fitted successfully.")
+
+    # ── Training Metrics ──────────────────────────────────────────
+    y_train_pred = pipeline.predict(X)
+    train_rmse = float(root_mean_squared_error(y, y_train_pred))
+    train_r2   = float(r2_score(y, y_train_pred))
+    logger.info(f"Train RMSE: {train_rmse:.2f} | Train R²: {train_r2:.4f}")
     
     # ── Saving ─────────────────────────────────────────────────────
     models_dir = Path("models")
     models_dir.mkdir(exist_ok=True)
     
-    # Dump separating prep and model to match DVC spec
-    # It's better to dump both if someone needs them separately, or just dump the whole object.
-    # We will dump the separated components for modularity, and also the pipeline if needed.
-    # Actually, DVC expects models/stacking_model.pkl and models/preprocessor.pkl
-    
-    # Extract fitted parts from the pipeline
     fitted_preprocessor = pipeline.named_steps['preprocessor']
     stack_model = pipeline.named_steps['model']
     
@@ -111,14 +120,28 @@ def run_model_training(config_path: str = "config/config.yaml") -> dict:
     
     logger.info("Saved models/preprocessor.pkl and models/stacking_model.pkl")
     
-    if use_wandb:
-        # Save models as artifact
-        artifact = wandb.Artifact("model_artifacts", type="model")
-        artifact.add_dir("models")
-        wandb.log_artifact(artifact)
+    # ── Log Metrics + Artifact to W&B ──────────────────────────────
+    if use_wandb and run:
+        # Log training metrics
+        wandb.log({
+            "train/rmse": train_rmse,
+            "train/r2":   train_r2,
+        })
+        logger.info("Training metrics logged to W&B (train/rmse, train/r2).")
+        
+        # Log model as a W&B Artifact
+        artifact = wandb.Artifact(
+            "model_artifacts",
+            type="model",
+            metadata={"train_rmse": train_rmse, "train_r2": train_r2}
+        )
+        artifact.add_dir(str(models_dir))
+        run.log_artifact(artifact)
+        logger.info("Model artifact uploaded to W&B.")
+        
         wandb.finish()
         
-    return {"status": "SUCCESS", "models_saved": True}
+    return {"status": "SUCCESS", "train_rmse": train_rmse, "train_r2": train_r2}
 
 if __name__ == "__main__":
     run_model_training()
