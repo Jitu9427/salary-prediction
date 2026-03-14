@@ -11,7 +11,6 @@ reports/
 
 # Environment / Secrets
 .env
-
 # DVC and Weights & Biases
 .dvc/
 wandb/
@@ -20,7 +19,7 @@ wandb/
 k8s/secret.yaml
 # C extensions
 *.so
-
+docs/
 # Distribution / packaging
 .Python
 build/

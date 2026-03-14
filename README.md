@@ -1,60 +1,139 @@
-# AI Salary Prediction – End-to-End MLOps Pipeline
+# Global AI Salary Predictor: End-to-End MLOps Pipeline
 
-This repository contains a full MLOps pipeline for predicting data science and AI job salaries based on features like experience level, employment type, remotely ratio, and company location. 
+[![Python 3.9+](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://www.python.org/)
+[![DVC Tooling](https://img.shields.io/badge/Orchestration-DVC-red.svg)](https://dvc.org/)
+[![W&B tracking](https://img.shields.io/badge/Tracking-W%26B-gold.svg)](https://wandb.ai/)
+[![FastAPI Serving](https://img.shields.io/badge/Serving-FastAPI-green.svg)](https://fastapi.tiangolo.com/)
 
-The project enforces strict reproducibility using **DVC** (Data Version Control) and experiment tracking via **Weights & Biases** (W&B).
+A repository implementing a complete machine learning lifecycle for salary prediction. This project achieves a **0.93 R² score** using a 33-feature dataset, managed via **DVC** for data versioning and **Weights & Biases** for experiment tracking.
 
-## 🚀 Pipeline Architecture
+---
 
-The machine learning lifecycle is split into 6 modular stages defined in `dvc.yaml`:
+## ✨ Key Features
 
-1. **`data_ingestion`**: Downloads the `ruchi798/data-science-job-salaries` dataset directly via the Kaggle API, validates the schema, and creates stratified 80/20 train/test splits.
-2. **`data_preprocessing`**: Removes outliers on the training set using IQR methodology, and drops redundant features (e.g., local currency/salary amounts).
-3. **`data_validation`**: Validates the processed splits to ensure schema targets, null checks, and shape consistency.
-4. **`model_training`**: Fits a highly robust Scikit-Learn pipeline (StandardScaler + OneHotEncoder) wrapped around a **Stacking Regressor** (Random Forest + Gradient Boosting + Ridge Meta-Learner). Logs all metrics, hyperparameters, and the serialized model artifacts (`preprocessor.pkl`, `stacking_model.pkl`) to Weights & Biases.
-5. **`model_evaluation`**: Evaluates the model strictly on the held-out test split, calculating RMSE, MAE, and R². Evaluated metrics are saved as JSON artifacts for DVC tracking.
-6. **`model_registration`**: If the model evaluation gracefully beats the predefined baseline thresholds (`min_r2` and `max_rmse` set in `params.yaml`), the model is automatically registered into the W&B Model Registry with a `production` alias.
+- **End-to-End Orchestration**: Modular pipeline stages defined in `dvc.yaml` for reproducibility.
+- **Automated Data Lifecycle**: Integrated Kaggle API for data ingestion and DVC for raw/processed data versioning.
+- **Advanced Ensemble Modeling**: Robust stacking architecture using state-of-the-art GBDT variants.
+- **Experiment Management**: Comprehensive logging of metrics, hyperparameters, and artifacts via W&B.
+- **Dynamic Inference Layer**: FastAPI server with an asynchronous lifecycle that pulls production-ready model artifacts on startup.
 
-## 🛠️ Tech Stack
-* **Language & Modelling:** Python 3.9+, pandas, scikit-learn
-* **Pipeline Orchestration:** DVC (Data Version Control)
-* **Tracking & Registry:** Weights & Biases
-* **Config Management:** YAML (`config.yaml` and `params.yaml`)
-* **Logging:** Centralised, rotating colour-formatted log files
+---
 
-## 📦 Setup & Installation
+## 🏗️ ML Model Architecture
 
-**1. Clone the repository and install dependencies:**
+The core of the prediction engine is a **Stacking Regressor** ensemble, designed to minimize variance and leverage the strengths of different boosting algorithms:
+
+- **Base Estimators**:
+  - **LightGBM**: Tuned with 500 estimators and a 0.5 learning rate for high-speed, accurate gradient boosting.
+  - **XGBoost**: Parallelized gradient boosting setup to capture complex non-linear relationships.
+- **Meta-Learner**:
+  - **Ridge Regressor**: A linear model with L2 regularization that aggregates the base learners' Out-of-Fold (OOF) predictions into a final USD estimate.
+- **Preprocessing Pipeline**:
+  - Categorical features are handled via `OrdinalEncoder`.
+  - Numerical features are standardized using `StandardScaler`.
+  - The target variable (`salary_usd`) is also standardized during training to stabilize gradient descent.
+
+---
+
+## 📈 Experiment Tracking & Registry
+
+The project uses **Weights & Biases (W&B)** to maintain a rigorous audit trail of all modeling activities:
+
+- **Live Logging**: Real-time tracking of training and validation metrics (R², RMSE, MAE).
+- **Artifact Management**: Versioned storage for the fitted `preprocessor.pkl`, `stacking_model.pkl`, and `target_scaler.pkl`.
+- **Model Registry**: Successful runs are automatically registered. The serving layer specifically fetches the latest artifact tagged as `production`, ensuring seamless model updates without code redeployment.
+
+---
+
+## 📐 System Architecture
+
+![System Architecture](docs/architecture_v2.png)
+
+The following diagram illustrates the automated data flow from ingestion to inference:
+```mermaid
+graph TD
+    A[Kaggle Dataset] -->|Download| B[Data Ingestion Stage]
+    B -->|Verified CSV| C[Preprocessing Stage]
+    C -->|Scaled Features| D[Stacking Training]
+    D -->|OOF Predictions| E[W&B Registry]
+    E -->|Production Tag| F[FastAPI Web Server]
+    G[Web User] -->|Inference Req| F
+    F -->|Salary Estimate| G
+```
+
+---
+
+## 📂 Project Structure
+
+```text
+.
+├── config/                 # YAML Configuration files
+│   ├── config.yaml         # Training & Dataset paths
+│   └── params.yaml         # Model hyperparameters & eval thresholds
+├── data/                   # (Git ignored) Local storage for CSVs
+├── reports/                # Pipeline metrics & validation reports
+├── src/                    # Pipeline stage source code
+│   ├── data_ingestion.py   # Kaggle download & validation
+│   ├── data_preprocessing.py # Feature engineering (StandardScaler/OrdinalEncoder)
+│   ├── model_training.py   # Stacking Ensemble (LGBM + XGB)
+│   ├── model_evaluation.py # W&B evaluation & artifact logging
+│   └── model_server.py     # Artifact resolution for FastAPI
+├── templates/              # HTML Frontend
+├── static/                 # CSS & Javascript for serving layer
+└── app.py                  # FastAPI server entry point
+```
+
+---
+
+## 🛠️ Pipeline Stages (`dvc.yaml`)
+
+| Stage | Responsibility | Artifact Outputs |
+| :--- | :--- | :--- |
+| **Ingestion** | Kaggle API connectivity & schema validation. | `raw/global_ai_jobs.csv`, `processed/train.csv` |
+| **Preprocessing** | Feature scaling & encoding for 33 variables. | `processed/train_processed.csv` |
+| **Training** | Stacking Ensemble (LGBM + XGBoost + Ridge). | `stacking_model.pkl`, `preprocessor.pkl` |
+| **Evaluation** | OOF metric calculation (RMSE, MAE, R²). | `reports/evaluation_metrics.json` |
+| **Registration** | Conditional promotion to W&B Model Registry. | Registered W&B Model Artifact |
+
+---
+
+## 📊 Performance Statistics
+
+Validation performed on a held-out test split (20%):
+
+| Metric | Value |
+| :--- | :--- |
+| **R² Score** | **0.9292** |
+| **MAE (Scaled)** | 0.2043 |
+| **RMSE (Scaled)** | 0.2654 |
+
+---
+
+## 🚀 Quick Start Guide
+
+### 1. Requirements
 ```bash
-git clone https://github.com/your-username/salary-prediction.git
-cd salary_prediction
 pip install -r requirements.txt
 ```
 
-**2. Configure Environment Variables:**
-Create a `.env` file at the root of the project with your API keys:
+### 2. Authentication
 ```env
-# Required for downloading the dataset
-KAGGLE_USERNAME=your_kaggle_username
-KAGGLE_KEY=your_kaggle_api_key
-
-# Required for experiment tracking and model registry
-WANDB_API_KEY=your_wandb_api_key
+KAGGLE_USERNAME=xxx
+KAGGLE_KEY=xxx
+WANDB_API_KEY=xxx
 ```
 
-**3. Run the Pipeline:**
-You can orchestrate the entire end-to-end pipeline efficiently using DVC:
+### 3. Execution
+**Run full pipeline:**
 ```bash
 dvc repro
 ```
-*DVC intelligently skips stages that haven't changed (e.g. it won't repeatedly download the dataset from Kaggle if `data/raw/ds_salaries.csv` is already cached locally).*
 
-To run a single stage in isolation (for debugging):
+**Launch local web demo:**
 ```bash
-python main.py --stage model_training
+python app.py
 ```
 
-## ⚙️ Configuration & Hyperparameters
-All paths, pipeline metadata, and ML hyperparameters are strictly decoupled from the codebase:
-- `config/config.yaml`: Defines directory paths, dataset names, ingestion split sizes.
-- `config/params.yaml`: Centralised hyperparameter configs for models, outlier thresholds, and evaluation targets. Editing this file automatically invalidates the relevant DVC stages.
+---
+
+*Project by [Jitu](https://github.com/Jitu9427)*
